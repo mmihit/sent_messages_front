@@ -11,11 +11,6 @@ export default function MyButton({title, onPress}) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   buttonWrapper: {
     borderRadius: 10,
     overflow: 'hidden', // this is important for rounded corners to apply

@@ -1,1 +1,1 @@
-export const Backend_URL = "http://localhost:8080"
+export const Backend_URL = "https://0cea011a34b4.ngrok-free.app"
