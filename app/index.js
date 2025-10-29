@@ -1,17 +1,29 @@
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { Button, Text, View } from 'react-native';
-import { Backend_URL } from '../src/constants/config.js';
-import { Get } from '../src/helpers/fetch.js';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
+import MyButton from '../src/components/button';
+import { UseAuth } from '../src/contexts/AuthContext.js';
+import { RemoveToken } from '../src/helpers/token.js';
+
 export default function Home() {
-    const router = useRouter(); 
+    const router = useRouter();
+    const [goToLoginClick, setGoToLoginClick] = useState(false);
+    const { profile, reload } = UseAuth();
+
+
     useEffect(() => {
-        const fetchData = async () => {
-            const data = await Get(Backend_URL, "/get_all_patients");
-            console.log(data);
+        const handleLogout = async () => {
+            if (goToLoginClick) {
+                await RemoveToken();
+                await reload();
+                setGoToLoginClick(false);
+                router.replace('/login');
+            }
         };
-        fetchData();
-    }, []);
+        handleLogout();
+    }, [goToLoginClick]);
+
+
 
     return (
         <View
@@ -19,10 +31,9 @@ export default function Home() {
                 flex: 1,
                 alignItems: 'center',
                 justifyContent: 'center',
-            }}
-        >
-            <Text style={{ fontSize: 24 }}>Homme page</Text>
-            <Button title="go to login" onPress={()=>router.push("/login")}/>
+            }}>
+            <Text style={{ fontSize: 24 }}>Welcome {profile?.user_name || 'Guest'}</Text>
+            <MyButton title="go to login" onPress={() => setGoToLoginClick(true)} />
         </View>
     );
 }

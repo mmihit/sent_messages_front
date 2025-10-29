@@ -5,9 +5,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
 import { Styles } from "../../assets/style/style.js";
 import MyButton from "../../src/components/button.js";
-import KeyboardView from "../../src/components/keyboardView.js";
-import { ToastConfig } from "../../src/components/toastConfig.js";
 import { Backend_URL } from "../../src/constants/config.js";
+import { UseAuth } from "../../src/contexts/AuthContext.js";
 import { Post } from "../../src/helpers/fetch.js";
 import { SetToken } from "../../src/helpers/token.js";
 
@@ -17,19 +16,13 @@ export default function index() {
     const [showPassword, setShowPassword] = useState(false);
     const [loginClick, setLoginClick] = useState(false);
     const [loginMessage, setLoginMessage] = useState({ isError: false, message: "" });
-    const [registerHover, setRegisterHover] = useState(false)
+    const { reload } = UseAuth();
+    // const [registerHover, setRegisterHover] = useState(false)
 
     useEffect(() => {
         const sentData = async () => {
-
+            console.log("click here: ", loginClick)
             const response = await Post(Backend_URL, "/login", { login: login, password: password });
-            if (!login || !password) {
-                setLoginMessage({
-                    isError: true,
-                    message: "Please fill all fields!"
-                })
-                return
-            }
             if (response.code < 200 || response.code > 200) {
                 setLoginMessage({
                     isError: true,
@@ -41,26 +34,35 @@ export default function index() {
                     message: response.data.message
                 });
                 await SetToken(response.data.token);
+                reload()
             }
         };
 
-        if (loginClick) sentData();
+        if (loginClick) {
+            if (!login.trim() || !password.trim()) {
+                setLoginMessage({
+                    isError: true,
+                    message: "Please fill all fields!"
+                })
+            } else {
+                sentData()
+            }
+        };
+
         if (loginMessage.message) {
             if (loginMessage.isError) {
-                // Alert.alert("title", "message")
                 Toast.show({
                     type: 'error',
-                    text1: 'Login Failed ❌',
+                    text1: 'Login Failed!',
                     text2: loginMessage.message,
                     visibilityTime: 4000,
                     autoHide: true,
                     topOffset: 60,
                 });
-
             } else {
                 Toast.show({
                     type: 'success',
-                    text1: 'Welcome back! 🎉',
+                    text1: 'Welcome back!',
                     text2: loginMessage.message,
                     visibilityTime: 3000,
                     autoHide: true,
@@ -69,29 +71,11 @@ export default function index() {
             }
             setLoginMessage({ isError: false, message: "" });
         }
-
-
         setLoginClick(false);
-
     }, [loginClick, loginMessage]);
-
-    // useEffect(() => {
-    //     //         Toast.show({
-    //     //     type: 'success',
-    //     //     text1: 'Test Toast',
-    //     //     visibilityTime: 4000,
-    //     //     position: 'top',
-    //     // });
-    //     // Alert.alert("test")
-    //     // alert("test this")
-    // }, [])
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <KeyboardView
-                contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
-                enableOnAndroid={true}
-            >
                 <View style={[styles.container, Styles.container]}>
                     <View style={styles.top}>
                         <Text style={styles.title}>Achifaa Tadkir JJ</Text>
@@ -135,9 +119,6 @@ export default function index() {
                         </Pressable>
                     </View>
                 </View>
-
-            </KeyboardView>
-            <Toast config={ToastConfig} />
         </SafeAreaView>
     );
 }

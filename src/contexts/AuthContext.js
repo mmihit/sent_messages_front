@@ -1,65 +1,78 @@
-import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { usePathname, useRootNavigationState, useRouter } from 'expo-router';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Backend_URL } from '../constants/config';
 import { Get } from '../helpers/fetch';
-import { GetToken, RemoveToken } from '../helpers/token';
+import { RemoveToken } from '../helpers/token';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [token, setTokenState] = useState(null);
-    const [role, setRole] = useState(null); // <-- user role
+    const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
-    const router = useRouter();
 
-    // Helper to load token from storage
-    const loadToken = async () => {
+    const pathName = usePathname();
+    const router = useRouter();
+    const rootNavigationState = useRootNavigationState();
+
+    const validPaths = ["/", "/login", "/register"];
+
+    const fetchProfile = async () => {
+        setLoading(true);
         try {
-            const storedToken = await GetToken();
-            if (storedToken) {
-                // Optionally validate token via backend
-                const response = await Get(Backend_URL, '/validate-token');
-                if (response.code === 200) {
-                    setTokenState(storedToken);
-                    router.push('/'); // go to home if valid
-                } else {
-                    await RemoveToken();
-                    setTokenState(null);
-                    router.push('/login'); // invalid token
-                }
+            const response = await Get(Backend_URL, '/get_me');
+            console.log("response: ", response);
+
+            if (response.code === 200) {
+                console.log("User authenticated");
+                setProfile(response.data);
             } else {
-                router.push('/login'); // no token
+                await RemoveToken();
+                setProfile(null);
             }
-        } catch (e) {
-            console.log('Auth load error:', e);
-            router.push('/login');
+        } catch (err) {
+            console.log('Error fetching /get_me:', err);
+            await RemoveToken();
+            setProfile(null);
         } finally {
             setLoading(false);
         }
     };
 
+    // Run once at startup
     useEffect(() => {
-        loadToken();
+        fetchProfile();
     }, []);
 
-    const setToken = async (newToken) => {
-        if (newToken) {
-            await SecureStore.setItemAsync('token', newToken);
-            setTokenState(newToken);
-        } else {
-            await SecureStore.deleteItemAsync('token');
-            setTokenState(null);
-            router.push('/login');
+    // Handle navigation when router is ready
+    useEffect(() => {
+        // Wait until navigation is ready and auth check is complete
+        if (!rootNavigationState?.key || loading) return;
+
+        console.log("Route guard:", { pathName, profile, loading });
+
+        if (profile && pathName === "/login") {
+            console.log("Redirecting to home");
+            router.replace("/");
+        } else if (!profile && pathName !== "/login" && pathName !== "/register") {
+            console.log("Redirecting to login");
+            router.replace("/login");
+        } else if (!validPaths.includes(pathName)) {
+            console.log("Invalid path, redirecting to home");
+            router.replace("/");
         }
-    };
+    }, [pathName, profile, loading, rootNavigationState?.key]);
 
     return (
-        <AuthContext.Provider value={{ token, setToken, loading }}>
+        <AuthContext.Provider
+            value={{
+                profile,
+                reload: fetchProfile,
+                loading,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );
 };
 
-// Custom hook for easy usage
-export const useAuth = () => useContext(AuthContext);
+export const UseAuth = () => useContext(AuthContext);

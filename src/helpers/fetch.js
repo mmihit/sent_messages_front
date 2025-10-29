@@ -4,20 +4,21 @@ export const Get = async (url, path, query = {}) => {
     try {
         const queryString = new URLSearchParams(query).toString();
         const token = await GetToken();
-        const resp = await fetch(`${url}${path}?${queryString}`, {
+        const resp = await fetch(`${url}${path}${queryString ? `?${queryString}` : ""}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                'Authorization': `Bearer ${token || ""}`
+                'ngrok-skip-browser-warning': 'true',
+                'Authorization': `Bearer ${token || ""}`,
             },
         })
         const data = await resp.json()
         if (!resp.ok) {
-            console.log(`HTTP error! status:${data.status}`)
+            console.log(`HTTP error! status: ${data.data}`)
         }
-
         return data
     } catch (error) {
+        console.log("catch error")
         throw error;
     }
 }

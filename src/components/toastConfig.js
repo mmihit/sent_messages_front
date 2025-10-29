@@ -1,6 +1,8 @@
 // toastConfig.js
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
+
 
 export const ToastConfig = {
     success: (props) => (
@@ -12,6 +14,11 @@ export const ToastConfig = {
             text2Style={styles.text2}
             text1NumberOfLines={2}
             text2NumberOfLines={3}
+            renderLeadingIcon={() => (
+                <View style={styles.iconContainer}>
+                    <Ionicons name="checkmark-circle" size={28} color="white" />
+                </View>
+            )}
             renderTrailingIcon={() => (
                 <TouchableOpacity
                     onPress={() => Toast.hide()}
@@ -31,6 +38,11 @@ export const ToastConfig = {
             text2Style={styles.text2}
             text1NumberOfLines={2}
             text2NumberOfLines={3}
+            renderLeadingIcon={() => (
+                <View style={styles.iconContainer}>
+                    <Ionicons name="warning" size={28} color="yellow" />
+                </View>
+            )}
             renderTrailingIcon={() => (
                 <TouchableOpacity
                     onPress={() => Toast.hide()}
@@ -45,15 +57,15 @@ export const ToastConfig = {
 
 const styles = StyleSheet.create({
     successToast: {
-        borderLeftWidth:0,
-        borderRadius:30,
+        borderLeftWidth: 0,
+        borderRadius: 30,
         backgroundColor: 'green',
         height: 'auto',
         minHeight: 70,
     },
     errorToast: {
-        borderLeftWidth:0,
-        borderRadius:30,
+        borderLeftWidth: 0,
+        borderRadius: 30,
         backgroundColor: 'red',
         height: 'auto',
         minHeight: 70,
@@ -62,11 +74,16 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25,
         paddingVertical: 10,
     },
+    iconContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingLeft: 15,
+    },
     text1: {
         fontSize: 16,
         fontWeight: '700',
         color: 'white',
-        textTransform:'capitalize',
+        textTransform: 'capitalize',
     },
     text2: {
         fontSize: 14,
