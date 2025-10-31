@@ -1,6 +1,6 @@
 import { Button, StyleSheet, View } from 'react-native';
 
-export default function MyButton({title, onPress}) {
+export function MyButton({title, onPress}) {
   return (
     <View style={styles.container}>
       <View style={styles.buttonWrapper}>

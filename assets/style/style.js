@@ -8,7 +8,7 @@ export const Styles = StyleSheet.create({
     },
 
     input: {
-        height: 40,
+        height: 45,
         borderWidth: 2,
         borderRadius: 15,
         padding: 10

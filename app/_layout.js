@@ -1,39 +1,56 @@
-import { Tabs } from 'expo-router';
-import { ActivityIndicator, View } from 'react-native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { useEffect } from 'react';
 import Toast from 'react-native-toast-message';
-import KeyboardView from '../src/components/keyboardView';
-import { ToastConfig } from '../src/components/toastConfig';
-import { AuthProvider, UseAuth } from '../src/contexts/AuthContext';
+import KeyboardView from '../src/components/keyboardView.js';
+import { Loading } from '../src/components/loading.js';
+import { ToastConfig } from '../src/components/toastConfig.js';
+import { SCREENS } from '../src/constants/screens.js';
+import { AuthProvider, UseAuth } from '../src/contexts/AuthContext.js';
+import TabLayout from './(tabs)/_layout.js';
+import Login from './login/index.js';
 
-// Create a wrapper component that waits for auth
+const Stack = createStackNavigator();
+
 function AuthGate({ children }) {
     const { loading } = UseAuth();
 
     if (loading) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" />
-            </View>
+            <Loading />
         );
     }
 
     return children;
 }
 
+function AuthStack() {
+    const { isLogin } = UseAuth();
+
+    useEffect(() => {
+        console.log("is login: ", isLogin);
+
+    }, [isLogin]);  
+
+    return (
+        <Stack.Navigator screenOptions={{
+            headerShown: false,
+        }}>
+            {isLogin ? (
+                <Stack.Screen name={SCREENS.Tabs} component={TabLayout} />
+            ) : (
+                <Stack.Screen name={SCREENS.Login} component={Login} />
+            )}
+        </Stack.Navigator>
+    );
+}
+
 export default function RootLayout() {
     return (
         <AuthProvider>
-            <KeyboardView
-                contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
-                enableOnAndroid={true}
-            >
+            <KeyboardView enableOnAndroid={true}>
                 <AuthGate>
-                    <Tabs screenOptions={{ headerShown: false }}>
-                        <Tabs.Screen name="index" options={{ title: 'Home' }} />
-                        <Tabs.Screen name="login/index" options={{ title: 'Login' }} />
-                    </Tabs>
+                    <AuthStack />
                 </AuthGate>
-
                 <Toast config={ToastConfig} />
             </KeyboardView>
         </AuthProvider>
